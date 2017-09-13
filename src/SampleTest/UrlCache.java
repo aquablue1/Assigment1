@@ -68,8 +68,8 @@ public class UrlCache {
 	 */
 	public void getObject(String url) throws UrlCacheException {
 		Socket socket;
-		String fileUrl = url.replace('/', '-');
-		fileUrl = fileUrl.replace(':', '=');
+		String fileUrl = url.replace('/', '/');
+		// fileUrl = fileUrl.replace(':', '=');
 		
 		HashMap<String, String> headerData = new HashMap<String, String>();
 		String[] urlWords = parseURL(url);
@@ -114,7 +114,7 @@ public class UrlCache {
 				Date date = strToDate(headerData.get("lastMod"));
 				CatalogObject catObj = new CatalogObject(url, date);
 				
-				catalog.add(catObj);
+				catalog.add(catObj); // should not add here, check if exist first.
 
 				System.out.println(catalog);
 				FileOutputStream catOut = new FileOutputStream("catalog.ser");
@@ -124,10 +124,20 @@ public class UrlCache {
 				objOut.close();
 				catOut.close();
 				
+				System.out.println("------------>	");
 				System.out.println(fileUrl);
-				FileOutputStream fileOut = new FileOutputStream(fileUrl);
+				File downloadedFile = new File(fileUrl);
+				File downloadedPath = downloadedFile.getParentFile();
+				//String downloadedFilename = downloadedFile.getName();
+				downloadedPath.mkdirs();
+				//System.out.println(downloadedFilename);
+				//downloadedFile.createNewFile();
+				
+				FileOutputStream fileOut = new FileOutputStream(downloadedFile);
 				
 				// Remove header form byte array
+				// Transform header separator to byte and use byte compare to find the position
+				// of separator. Do the separation based on the finding position.
 				String headerSep = "\r\n\r\n";
 				byte[] byteSep = headerSep.getBytes();
 				byte[] byteArray = byteOut.toByteArray();
@@ -283,6 +293,7 @@ public class UrlCache {
 		format.setTimeZone(TimeZone.getTimeZone("GMT"));
 		Date date = null;
 		try {
+			System.out.print(dateStr);
 			date = format.parse(dateStr);
 		} catch (ParseException e) {
 			e.printStackTrace();
@@ -310,4 +321,5 @@ public class UrlCache {
 		String dateStr = (format.format(date)).toString();
 		return dateStr;
 	}
+	
 }
